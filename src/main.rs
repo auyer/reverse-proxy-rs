@@ -13,6 +13,7 @@ use tracing_subscriber::FmtSubscriber;
 mod configuration;
 mod filter;
 mod handlers;
+mod metrics;
 mod shutdown;
 mod templates;
 
@@ -30,7 +31,10 @@ async fn main() {
     let subscriber = FmtSubscriber::builder().with_max_level(level).finish();
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
-    tokio::join!(server(config.port));
+    tokio::join!(
+        server(config.port),
+        metrics::start_metrics_server(config.metrics_port)
+    );
 }
 
 async fn server(port: u16) {
@@ -42,7 +46,9 @@ async fn server(port: u16) {
         .route("/*key", any(handlers::proxy_handler))
         .with_state(https_client)
         .layer(middleware::from_fn(filter::filter_internal_ips))
-        .layer(TimeoutLayer::new(Duration::from_secs(1000)));
+        .layer(metrics::create_tracing_layer())
+        .layer(middleware::from_fn(metrics::track_metrics))
+        .layer(TimeoutLayer::new(Duration::from_secs(10)));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
 
@@ -63,6 +69,8 @@ async fn https_server(port: u16) {
         .route("/*key", any(handlers::proxy_handler))
         .with_state(https_client)
         .layer(middleware::from_fn(filter::filter_internal_ips))
+        .layer(metrics::create_tracing_layer())
+        .layer(middleware::from_fn(metrics::track_metrics))
         .layer(TimeoutLayer::new(Duration::from_nanos(10)));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
