@@ -3,7 +3,6 @@ use axum::{
     middleware::Next,
     response::IntoResponse,
 };
-
 use std::net::IpAddr;
 use std::str::FromStr;
 

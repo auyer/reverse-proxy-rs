@@ -23,7 +23,7 @@ use configuration::read_configuration;
 async fn main() {
     let config = read_configuration();
 
-    let mut level = Level::DEBUG;
+    let mut level = Level::INFO;
     if config.debug {
         // level = Level::DEBUG;
         level = Level::TRACE;
@@ -48,7 +48,7 @@ async fn server(port: u16) {
         .layer(middleware::from_fn(filter::filter_internal_ips))
         .layer(metrics::create_tracing_layer())
         .layer(middleware::from_fn(metrics::track_metrics))
-        .layer(TimeoutLayer::new(Duration::from_secs(10)));
+        .layer(TimeoutLayer::new(Duration::from_secs(60)));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
 
@@ -71,11 +71,11 @@ async fn https_server(port: u16) {
         .layer(middleware::from_fn(filter::filter_internal_ips))
         .layer(metrics::create_tracing_layer())
         .layer(middleware::from_fn(metrics::track_metrics))
-        .layer(TimeoutLayer::new(Duration::from_nanos(10)));
+        .layer(TimeoutLayer::new(Duration::from_nanos(60)));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
     // println!("reverse proxy listening on {}", addr);
-    tracing::info!("reverse proxy listening on{}", addr);
+    tracing::info!("reverse proxy listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service_with_connect_info::<SocketAddr>())
         .with_graceful_shutdown(shutdown::shutdown_signal())

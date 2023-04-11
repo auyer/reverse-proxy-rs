@@ -4,19 +4,19 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.6", features = ["http2"] }
+axum = { version = "0.6", features = ["http2", "headers"] }
 hyper = { version = "0.14", features = ["full"] }
 hyper-tls = "0.5.0"
 tokio = { version = "1.0", features = ["full"] }
 tower = { version = "0.4", features = ["make"] }
-tower-http = { version = "0.4.0", features = ["timeout", "trace"] }
+tower-http = { version = "0.4.0", features = [
+    "timeout",
+    "trace",
+    "follow-redirect",
+] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde = { version = "1.0", features = ["derive"] }
 metrics = "0.20"
 metrics-exporter-prometheus = "0.11"
-tracing-logfmt = "0.3.1"
-url = "2.3.1"
 envy = "0.4.2"
-anyhow = "1.0.70"
-async-recursion = "1.0.4"
